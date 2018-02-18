@@ -1386,3 +1386,85 @@ impl<'a, 'tcx> LateLintPass<'a, 'tcx> for UnreachablePub {
         self.perform_lint(cx, "item", impl_item.id, &impl_item.vis, impl_item.span, false);
     }
 }
+
+/// Lint for trait and lifetime bounds that are (accidentally) accepted by the parser, but
+/// ignored later.
+
+pub struct IgnoredGenericBounds;
+
+declare_lint! {
+    IGNORED_GENERIC_BOUNDS,
+    Warn,
+    "these generic bounds are ignored"
+}
+
+impl LintPass for IgnoredGenericBounds {
+    fn get_lints(&self) -> LintArray {
+        lint_array!(IGNORED_GENERIC_BOUNDS)
+    }
+}
+
+impl IgnoredGenericBounds {
+    fn ensure_no_param_bounds(
+        cx: &EarlyContext,
+        span: Span,
+        generics: &Vec<ast::GenericParam>,
+        thing: &'static str,
+    ) {
+        let has_bound = generics.iter().any(|param|
+            match param {
+                &ast::GenericParam::Lifetime(ref lifetime) => {
+                    !lifetime.bounds.is_empty()
+                }
+                &ast::GenericParam::Type(ref ty) => {
+                    !ty.bounds.is_empty()
+                }
+            }
+        );
+
+        if has_bound {
+            cx.span_lint(IGNORED_GENERIC_BOUNDS, span,
+                format!("bounds on generic parameters are ignored in {}", thing).as_ref());
+        }
+    }
+}
+
+impl EarlyLintPass for IgnoredGenericBounds {
+    fn check_item(&mut self, cx: &EarlyContext, item: &ast::Item) {
+        match item.node {
+            ast::ItemKind::Ty(_, ref generics) => {
+                if !generics.where_clause.predicates.is_empty() {
+                    cx.span_lint(IGNORED_GENERIC_BOUNDS, item.span,
+                        "where clauses are ignored in trait bounds");
+                }
+                IgnoredGenericBounds::ensure_no_param_bounds(cx, item.span, &generics.params,
+                    "type aliases");
+            }
+            _ => {}
+        }
+    }
+
+    fn check_where_predicate(&mut self, cx: &EarlyContext, p: &ast::WherePredicate) {
+        if let &ast::WherePredicate::BoundPredicate(ref bound_predicate) = p {
+            // A type binding, eg `for<'c> Foo: Send+Clone+'c`
+            IgnoredGenericBounds::ensure_no_param_bounds(cx, bound_predicate.span,
+                &bound_predicate.bound_generic_params, "higher-ranked trait bounds (i.e., `for`)");
+        }
+    }
+
+    fn check_poly_trait_ref(&mut self, cx: &EarlyContext, t: &ast::PolyTraitRef,
+                            _: &ast::TraitBoundModifier) {
+        IgnoredGenericBounds::ensure_no_param_bounds(cx, t.span, &t.bound_generic_params,
+            "higher-ranked trait bounds (i.e., `for`)");
+    }
+
+    fn check_ty(&mut self, cx: &EarlyContext, ty: &ast::Ty) {
+        match ty.node {
+            ast::TyKind::BareFn(ref fn_ty) => {
+                IgnoredGenericBounds::ensure_no_param_bounds(cx, ty.span, &fn_ty.generic_params,
+                    "higher-ranked function types (i.e., `for`)");
+            }
+            _ => {}
+        }
+    }
+}
