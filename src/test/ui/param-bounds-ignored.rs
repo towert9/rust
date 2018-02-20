@@ -13,13 +13,13 @@
 
 use std::rc::Rc;
 
-type SVec<T: Send> = Vec<T>;
+type SVec<T: Send+Send> = Vec<T>;
 //~^ WARN bounds on generic type parameters are ignored in type aliases
-type VVec<'b, 'a: 'b> = Vec<&'a i32>;
+type VVec<'b, 'a: 'b+'b> = Vec<&'a i32>;
 //~^ WARN bounds on generic lifetime parameters are ignored in type aliases
-type WVec<'b, T: 'b> = Vec<T>;
+type WVec<'b, T: 'b+'b> = Vec<T>;
 //~^ WARN bounds on generic type parameters are ignored in type aliases
-type W2Vec<'b, T> where T: 'b = Vec<T>;
+type W2Vec<'b, T> where T: 'b, T: 'b = Vec<T>;
 //~^ WARN where clauses are ignored in type aliases
 
 fn foo<'a>(y: &'a i32) {

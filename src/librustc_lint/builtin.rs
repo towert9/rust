@@ -1414,9 +1414,10 @@ impl IgnoredGenericBounds {
             match param {
                 &ast::GenericParam::Lifetime(ref lifetime) => {
                     if !lifetime.bounds.is_empty() {
+                        let spans : Vec<_> = lifetime.bounds.iter().map(|b| b.span).collect();
                         cx.span_lint(
                             IGNORED_GENERIC_BOUNDS,
-                            lifetime.bounds[0].span,
+                            spans,
                             format!("bounds on generic lifetime parameters are ignored in {}",
                                 thing).as_ref()
                         );
@@ -1424,9 +1425,10 @@ impl IgnoredGenericBounds {
                 }
                 &ast::GenericParam::Type(ref ty) => {
                     if !ty.bounds.is_empty() {
+                        let spans : Vec<_> = ty.bounds.iter().map(|b| b.span()).collect();
                         cx.span_lint(
                             IGNORED_GENERIC_BOUNDS,
-                            ty.bounds[0].span(),
+                            spans,
                             format!("bounds on generic type parameters are ignored in {}", thing)
                                 .as_ref()
                         );
@@ -1442,8 +1444,9 @@ impl EarlyLintPass for IgnoredGenericBounds {
         match item.node {
             ast::ItemKind::Ty(_, ref generics) => {
                 if !generics.where_clause.predicates.is_empty() {
-                    cx.span_lint(IGNORED_GENERIC_BOUNDS,
-                        generics.where_clause.predicates[0].span(),
+                    let spans : Vec<_> = generics.where_clause.predicates.iter()
+                        .map(|pred| pred.span()).collect();
+                    cx.span_lint(IGNORED_GENERIC_BOUNDS, spans,
                         "where clauses are ignored in type aliases");
                 }
                 IgnoredGenericBounds::ensure_no_param_bounds(cx, &generics.params,
