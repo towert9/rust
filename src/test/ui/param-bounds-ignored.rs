@@ -14,9 +14,13 @@
 use std::rc::Rc;
 
 type SVec<T: Send> = Vec<T>;
+//~^ WARN bounds on generic type parameters are ignored in type aliases
 type VVec<'b, 'a: 'b> = Vec<&'a i32>;
+//~^ WARN bounds on generic lifetime parameters are ignored in type aliases
 type WVec<'b, T: 'b> = Vec<T>;
+//~^ WARN bounds on generic type parameters are ignored in type aliases
 type W2Vec<'b, T> where T: 'b = Vec<T>;
+//~^ WARN where clauses are ignored in type aliases
 
 fn foo<'a>(y: &'a i32) {
     // If the bounds above would matter, the code below would be rejected.
@@ -37,6 +41,7 @@ fn bar1<'a, 'b>(
     x: &'a i32,
     y: &'b i32,
     f: for<'xa, 'xb: 'xa> fn(&'xa i32, &'xb i32) -> &'xa i32)
+    //~^ WARN bounds on generic lifetime parameters are ignored in higher-ranked function types
 {
     // If the bound in f's type would matter, the call below would (have to)
     // be rejected.
@@ -44,6 +49,7 @@ fn bar1<'a, 'b>(
 }
 
 fn bar2<'a, 'b, F: for<'xa, 'xb: 'xa> Fn(&'xa i32, &'xb i32) -> &'xa i32>(
+    //~^ WARN bounds on generic lifetime parameters are ignored in higher-ranked trait bounds
     x: &'a i32,
     y: &'b i32,
     f: F)
@@ -58,6 +64,7 @@ fn bar3<'a, 'b, F>(
     y: &'b i32,
     f: F)
     where F: for<'xa, 'xb: 'xa> Fn(&'xa i32, &'xb i32) -> &'xa i32
+    //~^ WARN bounds on generic lifetime parameters are ignored in higher-ranked trait bounds
 {
     // If the bound in f's type would matter, the call below would (have to)
     // be rejected.
@@ -69,6 +76,7 @@ fn bar4<'a, 'b, F>(
     y: &'b i32,
     f: F)
     where for<'xa, 'xb: 'xa> F: Fn(&'xa i32, &'xb i32) -> &'xa i32
+    //~^ WARN bounds on generic lifetime parameters are ignored in higher-ranked trait bounds
 {
     // If the bound in f's type would matter, the call below would (have to)
     // be rejected.
@@ -76,14 +84,21 @@ fn bar4<'a, 'b, F>(
 }
 
 struct S1<F: for<'xa, 'xb: 'xa> Fn(&'xa i32, &'xb i32) -> &'xa i32>(F);
+//~^ WARN bounds on generic lifetime parameters are ignored in higher-ranked trait bounds
 struct S2<F>(F) where F: for<'xa, 'xb: 'xa> Fn(&'xa i32, &'xb i32) -> &'xa i32;
+//~^ WARN bounds on generic lifetime parameters are ignored in higher-ranked trait bounds
 struct S3<F>(F) where for<'xa, 'xb: 'xa> F: Fn(&'xa i32, &'xb i32) -> &'xa i32;
+//~^ WARN bounds on generic lifetime parameters are ignored in higher-ranked trait bounds
 
 struct S_fnty(for<'xa, 'xb: 'xa> fn(&'xa i32, &'xb i32) -> &'xa i32);
+//~^ WARN bounds on generic lifetime parameters are ignored in higher-ranked function types
 
 type T1 = Box<for<'xa, 'xb: 'xa> Fn(&'xa i32, &'xb i32) -> &'xa i32>;
+//~^ WARN bounds on generic lifetime parameters are ignored in higher-ranked trait bounds
 
 fn main() {
     let _ : Option<for<'xa, 'xb: 'xa> fn(&'xa i32, &'xb i32) -> &'xa i32> = None;
+    //~^ WARN bounds on generic lifetime parameters are ignored in higher-ranked function types
     let _ : Option<Box<for<'xa, 'xb: 'xa> Fn(&'xa i32, &'xb i32) -> &'xa i32>> = None;
+    //~^ WARN bounds on generic lifetime parameters are ignored in higher-ranked trait bounds
 }

@@ -1407,24 +1407,32 @@ impl LintPass for IgnoredGenericBounds {
 impl IgnoredGenericBounds {
     fn ensure_no_param_bounds(
         cx: &EarlyContext,
-        span: Span,
         generics: &Vec<ast::GenericParam>,
         thing: &'static str,
     ) {
-        let has_bound = generics.iter().any(|param|
+        for param in generics.iter() {
             match param {
                 &ast::GenericParam::Lifetime(ref lifetime) => {
-                    !lifetime.bounds.is_empty()
+                    if !lifetime.bounds.is_empty() {
+                        cx.span_lint(
+                            IGNORED_GENERIC_BOUNDS,
+                            lifetime.bounds[0].span,
+                            format!("bounds on generic lifetime parameters are ignored in {}",
+                                thing).as_ref()
+                        );
+                    }
                 }
                 &ast::GenericParam::Type(ref ty) => {
-                    !ty.bounds.is_empty()
+                    if !ty.bounds.is_empty() {
+                        cx.span_lint(
+                            IGNORED_GENERIC_BOUNDS,
+                            ty.bounds[0].span(),
+                            format!("bounds on generic type parameters are ignored in {}", thing)
+                                .as_ref()
+                        );
+                    }
                 }
             }
-        );
-
-        if has_bound {
-            cx.span_lint(IGNORED_GENERIC_BOUNDS, span,
-                format!("bounds on generic parameters are ignored in {}", thing).as_ref());
         }
     }
 }
@@ -1434,10 +1442,11 @@ impl EarlyLintPass for IgnoredGenericBounds {
         match item.node {
             ast::ItemKind::Ty(_, ref generics) => {
                 if !generics.where_clause.predicates.is_empty() {
-                    cx.span_lint(IGNORED_GENERIC_BOUNDS, item.span,
-                        "where clauses are ignored in trait bounds");
+                    cx.span_lint(IGNORED_GENERIC_BOUNDS,
+                        generics.where_clause.predicates[0].span(),
+                        "where clauses are ignored in type aliases");
                 }
-                IgnoredGenericBounds::ensure_no_param_bounds(cx, item.span, &generics.params,
+                IgnoredGenericBounds::ensure_no_param_bounds(cx, &generics.params,
                     "type aliases");
             }
             _ => {}
@@ -1447,21 +1456,21 @@ impl EarlyLintPass for IgnoredGenericBounds {
     fn check_where_predicate(&mut self, cx: &EarlyContext, p: &ast::WherePredicate) {
         if let &ast::WherePredicate::BoundPredicate(ref bound_predicate) = p {
             // A type binding, eg `for<'c> Foo: Send+Clone+'c`
-            IgnoredGenericBounds::ensure_no_param_bounds(cx, bound_predicate.span,
+            IgnoredGenericBounds::ensure_no_param_bounds(cx,
                 &bound_predicate.bound_generic_params, "higher-ranked trait bounds (i.e., `for`)");
         }
     }
 
     fn check_poly_trait_ref(&mut self, cx: &EarlyContext, t: &ast::PolyTraitRef,
                             _: &ast::TraitBoundModifier) {
-        IgnoredGenericBounds::ensure_no_param_bounds(cx, t.span, &t.bound_generic_params,
+        IgnoredGenericBounds::ensure_no_param_bounds(cx, &t.bound_generic_params,
             "higher-ranked trait bounds (i.e., `for`)");
     }
 
     fn check_ty(&mut self, cx: &EarlyContext, ty: &ast::Ty) {
         match ty.node {
             ast::TyKind::BareFn(ref fn_ty) => {
-                IgnoredGenericBounds::ensure_no_param_bounds(cx, ty.span, &fn_ty.generic_params,
+                IgnoredGenericBounds::ensure_no_param_bounds(cx, &fn_ty.generic_params,
                     "higher-ranked function types (i.e., `for`)");
             }
             _ => {}

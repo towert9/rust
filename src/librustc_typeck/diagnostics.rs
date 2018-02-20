@@ -4737,6 +4737,7 @@ register_diagnostics! {
 //  E0086,
 //  E0103,
 //  E0104,
+//  E0122, // bounds in type aliases are ignored, turned into proper lint
 //  E0123,
 //  E0127,
 //  E0129,
