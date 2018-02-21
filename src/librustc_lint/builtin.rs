@@ -1394,7 +1394,7 @@ pub struct IgnoredGenericBounds;
 
 declare_lint! {
     IGNORED_GENERIC_BOUNDS,
-    Warn,
+    Deny,
     "these generic bounds are ignored"
 }
 

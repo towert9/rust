@@ -14,6 +14,7 @@
 #![feature(associated_type_defaults)]
 #![deny(private_in_public)]
 #![allow(improper_ctypes)]
+#![warn(ignored_generic_bounds)]
 
 mod types {
     struct Priv;

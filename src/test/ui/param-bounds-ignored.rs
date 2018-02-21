@@ -10,6 +10,7 @@
 
 // must-compile-successfully
 #![allow(dead_code, non_camel_case_types)]
+#![warn(ignored_generic_bounds)]
 
 use std::rc::Rc;
 

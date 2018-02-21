@@ -8,6 +8,6 @@
 // option. This file may not be copied, modified, or distributed
 // except according to those terms.
 
-type Foo<T: std::ops::Add> = T; //~ WARNING bounds on generic type parameters are ignored
+type Foo<T: std::ops::Add> = T; //~ ERROR bounds on generic type parameters are ignored
 
-type Bar<T> where T: std::ops::Add = T; //~ WARNING where clauses are ignored
+type Bar<T> where T: std::ops::Add = T; //~ ERROR where clauses are ignored
