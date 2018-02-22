@@ -1,18 +1,96 @@
-warning[E0122]: generic bounds are ignored in type aliases
-  --> $DIR/param-bounds-ignored.rs:15:1
+warning: bounds on generic type parameters are ignored in type aliases
+  --> $DIR/param-bounds-ignored.rs:17:14
    |
-15 | type SVec<T: Send> = Vec<T>;
-   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+17 | type SVec<T: Send+Send> = Vec<T>;
+   |              ^^^^ ^^^^
+   |
+note: lint level defined here
+  --> $DIR/param-bounds-ignored.rs:13:9
+   |
+13 | #![warn(ignored_generic_bounds)]
+   |         ^^^^^^^^^^^^^^^^^^^^^^
 
-warning[E0122]: generic bounds are ignored in type aliases
-  --> $DIR/param-bounds-ignored.rs:16:1
+warning: bounds on generic lifetime parameters are ignored in type aliases
+  --> $DIR/param-bounds-ignored.rs:19:19
    |
-16 | type VVec<'b, 'a: 'b> = Vec<&'a i32>;
-   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+19 | type VVec<'b, 'a: 'b+'b> = Vec<&'a i32>;
+   |                   ^^ ^^
 
-warning[E0122]: generic bounds are ignored in type aliases
-  --> $DIR/param-bounds-ignored.rs:17:1
+warning: bounds on generic type parameters are ignored in type aliases
+  --> $DIR/param-bounds-ignored.rs:21:18
    |
-17 | type WVec<'b, T: 'b> = Vec<T>;
-   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+21 | type WVec<'b, T: 'b+'b> = Vec<T>;
+   |                  ^^ ^^
+
+warning: where clauses are ignored in type aliases
+  --> $DIR/param-bounds-ignored.rs:23:25
+   |
+23 | type W2Vec<'b, T> where T: 'b, T: 'b = Vec<T>;
+   |                         ^^^^^  ^^^^^
+
+warning: bounds on generic lifetime parameters are ignored in higher-ranked function types (i.e., `for`)
+  --> $DIR/param-bounds-ignored.rs:44:22
+   |
+44 |     f: for<'xa, 'xb: 'xa> fn(&'xa i32, &'xb i32) -> &'xa i32)
+   |                      ^^^
+
+warning: bounds on generic lifetime parameters are ignored in higher-ranked trait bounds (i.e., `for`)
+  --> $DIR/param-bounds-ignored.rs:52:34
+   |
+52 | fn bar2<'a, 'b, F: for<'xa, 'xb: 'xa> Fn(&'xa i32, &'xb i32) -> &'xa i32>(
+   |                                  ^^^
+
+warning: bounds on generic lifetime parameters are ignored in higher-ranked trait bounds (i.e., `for`)
+  --> $DIR/param-bounds-ignored.rs:67:28
+   |
+67 |     where F: for<'xa, 'xb: 'xa> Fn(&'xa i32, &'xb i32) -> &'xa i32
+   |                            ^^^
+
+warning: bounds on generic lifetime parameters are ignored in higher-ranked trait bounds (i.e., `for`)
+  --> $DIR/param-bounds-ignored.rs:79:25
+   |
+79 |     where for<'xa, 'xb: 'xa> F: Fn(&'xa i32, &'xb i32) -> &'xa i32
+   |                         ^^^
+
+warning: bounds on generic lifetime parameters are ignored in higher-ranked trait bounds (i.e., `for`)
+  --> $DIR/param-bounds-ignored.rs:87:28
+   |
+87 | struct S1<F: for<'xa, 'xb: 'xa> Fn(&'xa i32, &'xb i32) -> &'xa i32>(F);
+   |                            ^^^
+
+warning: bounds on generic lifetime parameters are ignored in higher-ranked trait bounds (i.e., `for`)
+  --> $DIR/param-bounds-ignored.rs:89:40
+   |
+89 | struct S2<F>(F) where F: for<'xa, 'xb: 'xa> Fn(&'xa i32, &'xb i32) -> &'xa i32;
+   |                                        ^^^
+
+warning: bounds on generic lifetime parameters are ignored in higher-ranked trait bounds (i.e., `for`)
+  --> $DIR/param-bounds-ignored.rs:91:37
+   |
+91 | struct S3<F>(F) where for<'xa, 'xb: 'xa> F: Fn(&'xa i32, &'xb i32) -> &'xa i32;
+   |                                     ^^^
+
+warning: bounds on generic lifetime parameters are ignored in higher-ranked function types (i.e., `for`)
+  --> $DIR/param-bounds-ignored.rs:94:29
+   |
+94 | struct S_fnty(for<'xa, 'xb: 'xa> fn(&'xa i32, &'xb i32) -> &'xa i32);
+   |                             ^^^
+
+warning: bounds on generic lifetime parameters are ignored in higher-ranked trait bounds (i.e., `for`)
+  --> $DIR/param-bounds-ignored.rs:97:29
+   |
+97 | type T1 = Box<for<'xa, 'xb: 'xa> Fn(&'xa i32, &'xb i32) -> &'xa i32>;
+   |                             ^^^
+
+warning: bounds on generic lifetime parameters are ignored in higher-ranked function types (i.e., `for`)
+   --> $DIR/param-bounds-ignored.rs:101:34
+    |
+101 |     let _ : Option<for<'xa, 'xb: 'xa> fn(&'xa i32, &'xb i32) -> &'xa i32> = None;
+    |                                  ^^^
+
+warning: bounds on generic lifetime parameters are ignored in higher-ranked trait bounds (i.e., `for`)
+   --> $DIR/param-bounds-ignored.rs:103:38
+    |
+103 |     let _ : Option<Box<for<'xa, 'xb: 'xa> Fn(&'xa i32, &'xb i32) -> &'xa i32>> = None;
+    |                                      ^^^
 

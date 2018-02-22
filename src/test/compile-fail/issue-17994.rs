@@ -8,7 +8,9 @@
 // option. This file may not be copied, modified, or distributed
 // except according to those terms.
 
+#![warn(ignored_generic_bounds)]
+
 trait Tr {}
 type Huh<T> where T: Tr = isize; //~  ERROR type parameter `T` is unused
-                                 //~| WARNING E0122
+                                 //~| WARNING where clauses are ignored in type aliases
 fn main() {}
